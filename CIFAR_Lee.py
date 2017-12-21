@@ -8,13 +8,15 @@ tf.set_random_seed(0.0)
 
 
 BATCH_SIZE = 1000 #(there are 50,000 images in train)
+# tensorboard --logdir=/home/student-6/PycharmProjects/CIFAR_Lee-Ofer/logs
+
 
 
 images, cls_res, cls_vec = cifar.load_images()
 
 with tf.name_scope('adam_optimizer'):
-    im = images[1]
-tf.summary.image('image 2', im)
+    im = images[1:2, :, :, :]
+tf.summary.image('image 2', im, 3)
 merged = tf.summary.merge_all()
 
 
@@ -103,6 +105,7 @@ cross_entropy = tf.reduce_mean(cross_entropy)*100
 # accuracy of the trained model, between 0 (worst) and 1 (best)
 correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print(accuracy)
 
 # training step, the learning rate is a placeholder
 train_step = tf.train.AdamOptimizer(lr).minimize(cross_entropy)
@@ -119,13 +122,12 @@ for epoch in range(2):
     for batch in range(300):
         indices = random.sample(xrange(len(images)), BATCH_SIZE)
         images_batch = images[indices, :, :, :]
-        labels_batch = cls_vec[:, indices]
+        labels_batch = cls_vec[indices, :]
     sess.run(train_step, feed_dict={X: images_batch, Y_: labels_batch})
     summary = sess.run(merged, feed_dict={X: images_batch, Y_: labels_batch})
-    test_writer.add_summary(summary, epoch)
+    writer.add_summary(summary, epoch)
     # if batch % 100 == 0:
         # print stuff
 t_end = time.clock()
 print('Elapsed time ', t_end - t_start)
 
-print("max test accuracy: " + str(datavis.get_max_test_accuracy()))
